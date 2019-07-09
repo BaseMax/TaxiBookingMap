@@ -4,6 +4,11 @@ A web page for booking a taxi with some feature to convert address to latitude a
 
 ![ScreenShot](screenshot1.png)
 
+
+## Config
+
+Put your **API** replace with `YOUR_API_KEY`.
+
 ### Useful References
 
 - Get API: https://developers.google.com/maps/documentation/javascript/get-api-key
