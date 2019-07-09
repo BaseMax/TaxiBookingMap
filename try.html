@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Place Autocomplete</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		<link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+		<style>
+		#map {
+			height: 100%;
+		}
+		html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+		#locationField, #controls {
+			position: relative;
+			width: 480px;
+		}
+		#autocomplete {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 99%;
+		}
+		.label {
+			text-align: right;
+			font-weight: bold;
+			width: 100px;
+			color: #303030;
+			font-family: "Roboto";
+		}
+		#address {
+			border: 1px solid #000090;
+			background-color: #f0f9ff;
+			width: 480px;
+			padding-right: 2px;
+		}
+		#address td {
+			font-size: 10pt;
+		}
+		.field {
+			width: 99%;
+		}
+		.slimField {
+			width: 80px;
+		}
+		.wideField {
+			width: 200px;
+		}
+		#locationField {
+			height: 20px;
+			margin-bottom: 2px;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="locationField">
+			<input id="autocomplete" placeholder="Enter your address" onFocus="geolocate()" type="text"/>
+		</div>
+		<table id="address">
+			<tr>
+				<td class="label">Street address</td>
+				<td class="slimField"><input class="field" id="street_number" disabled="true"/></td>
+				<td class="wideField" colspan="2"><input class="field" id="route" disabled="true"/></td>
+			</tr>
+			<tr>
+				<td class="label">City</td>
+				<td class="wideField" colspan="3"><input class="field" id="locality" disabled="true"/></td>
+			</tr>
+			<tr>
+				<td class="label">State</td>
+				<td class="slimField"><input class="field" id="administrative_area_level_1" disabled="true"/></td>
+				<td class="label">Zip code</td>
+				<td class="wideField"><input class="field" id="postal_code" disabled="true"/></td>
+			</tr>
+			<tr>
+				<td class="label">Country</td>
+				<td class="wideField" colspan="3"><input class="field" id="country" disabled="true"/></td>
+			</tr>
+		</table>
+		<div id="map"></div>
+	    <script>
+		var placeSearch, autocomplete;
+		var componentForm = {
+			street_number: 'short_name',
+			route: 'long_name',
+			locality: 'long_name',
+			administrative_area_level_1: 'short_name',
+			country: 'long_name',
+			postal_code: 'short_name'
+		};
+		function initAutocomplete() {
+			autocomplete = new google.maps.places.Autocomplete(document.getElementById('autocomplete'), {types: ['geocode']});
+			autocomplete.setFields(['address_component']);
+			autocomplete.addListener('place_changed', fillInAddress);
+		}
+		function fillInAddress() {
+			var place = autocomplete.getPlace();
+			// var l = place.geometry.viewport.getSouthWest();
+			// console.log(l);
+			// console.log(place.geometry.location);
+			// var lat = place.geometry.location.lat(),
+			// 	lng = place.geometry.location.lng();
+			// console.log(lat);
+			// console.log(lng);
+			for(var component in componentForm) {
+				document.getElementById(component).value = '';
+				document.getElementById(component).disabled = false;
+			}
+			for(var i = 0; i < place.address_components.length; i++) {
+				var addressType = place.address_components[i].types[0];
+				if(componentForm[addressType]) {
+					var val = place.address_components[i][componentForm[addressType]];
+					document.getElementById(addressType).value = val;
+				}
+			}
+			// console.log(geolocation);
+			// ﻿var loc=new google.maps.LatLng(geolocation.lat , geolocation.lng);
+			// var myOptions = {
+			// 	zoom: 9,
+			// 	center: loc,
+			// 	mapTypeId: google.maps.MapTypeId.ROADMAP,
+			// 	streetViewControl: true,
+			// 	mapTypeControl: true,
+			// };
+			// var map = new google.maps.Map(document.getElementById("map"),myOptions);
+		}
+		function geolocate() {
+			if(navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(function(position) {
+					var geolocation = {
+						lat: position.coords.latitude,
+						lng: position.coords.longitude
+					};
+					var circle = new google.maps.Circle({center: geolocation, radius: position.coords.accuracy});
+					autocomplete.setBounds(circle.getBounds());
+				});
+			}
+		}
+		</script>
+		<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete"
+		    async defer></script>
+	</body>
+</html>
+<!--
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&libraries=geometry"></script>
+<script>
+// var radian = function(x) {
+// 	return x * Math.PI / 180;
+// };
+// var getDistance = function(p1, p2) {
+// 	var R = 6378137;
+// 	var dLat = radian(p2.lat() - p1.lat());
+// 	var dLong = radian(p2.lng() - p1.lng());
+// 	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+// 		Math.cos(radian(p1.lat())) * Math.cos(radian(p2.lat())) *
+// 		Math.sin(dLong / 2) * Math.sin(dLong / 2);
+// 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+// 	var d = R * c;
+// 	return d; // meter
+// };
+var p1 = new google.maps.LatLng(45.463688, 9.18814);
+var p2 = new google.maps.LatLng(46.0438317, 9.75936230000002);
+// alert(calcDistance(p1, p2));
+function calcDistance(p1, p2) {
+	return(google.maps.geometry.spherical.computeDistanceBetween(p1, p2) / 1000).toFixed(2);
+}
+function convertAddress() {
+	var address = document.getElementById("address").value;
+	var geocoder = new google.maps.Geocoder();
+	geocoder.geocode( { 'address': address}, function(results, status) {
+		if(status == google.maps.GeocoderStatus.OK) {
+			document.getElementById('latlong').value =(results[0].geometry.location);
+		}
+		else {
+			alert("Geocode was not successful for the following reason: " + status);
+		}
+	});
+}
+function initialize() {
+	var input = document.getElementById('address');
+	var autocomplete = new google.maps.places.Autocomplete(input);
+	console.log(autocomplete);
+}
+</script>
+<input type="text" name="address" id="address">
+<button onclick="initialize();/*convertAddress();*/">Convert to location</button>
+-->
